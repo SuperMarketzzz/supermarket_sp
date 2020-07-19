@@ -1,0 +1,15 @@
+server:
+  port: 8888
+  servlet:
+    context-path: /super_market_sp
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.jdbc.Driver
+    url: jdbc:mysql://localhost:3306/mysql?useUnicode=true&characterEncoding=UTF-8&useSSL=false&&serverTimezone=GMT&&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+
+mybatis:
+  typeAliasesPackage: com.market.vo
+  mapperLocations: classpath:/mybatis/*.xml

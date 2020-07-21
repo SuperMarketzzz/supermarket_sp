@@ -1,19 +1,82 @@
 package com.market.interctpor;
 
+import java.lang.reflect.Method;
+
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.method.HandlerMethod;
 import org.springframework.web.servlet.HandlerInterceptor;
 import org.springframework.web.servlet.ModelAndView;
 
+import com.auth0.jwt.JWT;
+import com.auth0.jwt.JWTVerifier;
+import com.auth0.jwt.algorithms.Algorithm;
+import com.auth0.jwt.exceptions.JWTDecodeException;
+import com.auth0.jwt.exceptions.JWTVerificationException;
+import com.market.service.IUserService;
+import com.market.utils.PassToken;
+import com.market.utils.UserLoginToken;
+import com.market.vo.User;
+
 public class LoginInterctpor implements HandlerInterceptor{
+	@Autowired
+	private IUserService userServiceImpl;
+	
 	@Override
 	public boolean preHandle(HttpServletRequest request, HttpServletResponse response, Object handler)
 			throws Exception {
-		// TODO Auto-generated method stub
-		//return HandlerInterceptor.super.preHandle(request, response, handler);
+		String token = request.getHeader("token");
+		//如果不是映射到方法直接通过
+		if(!(handler instanceof HandlerMethod)) {
+			return true;
+		}
+		HandlerMethod handlerMethod = (HandlerMethod)handler;
+		Method method = handlerMethod.getMethod();
+		//检查是否有passtoken注解，有则直接跳过
+		if(method.isAnnotationPresent(PassToken.class)) {
+			PassToken passToken = method.getAnnotation(PassToken.class);
+			if(passToken.required()) {
+				return true;
+			}
+		}
 		
-		System.out.println("开始拦截");
+		//检查有没有需要用户权限的注解
+		if(method.isAnnotationPresent(UserLoginToken.class)) {
+			UserLoginToken userLoginToken = method.getAnnotation(UserLoginToken.class);
+			if(userLoginToken.required()) {
+				//执行认证
+				if(token == null) {
+					throw new RuntimeException("无token，请重新登录");
+				}
+				
+				//获取token中的user id
+				String userId;
+				try {
+					userId = JWT.decode(token).getAudience().get(0);
+				} catch (JWTDecodeException e) {
+					throw new RuntimeException("401");
+				}
+				
+				User user = userServiceImpl.getUserById(userId);
+				if(user == null) {
+					throw new RuntimeException("用户不存在，请重新登录");
+				}
+				
+				//验证token
+				JWTVerifier jwtVerifier = JWT.require(Algorithm.HMAC256(user.getPwd())).build();
+				try {
+					jwtVerifier.verify(token);
+				} catch (JWTVerificationException e) {
+					throw new RuntimeException("401");
+				}
+				
+				//将验证通过的用户信息存放到请求中
+				request.setAttribute("currentUser", user);
+				return true;
+			}
+		}
 		
 		return true;
 	}
@@ -22,15 +85,13 @@ public class LoginInterctpor implements HandlerInterceptor{
 	public void postHandle(HttpServletRequest request, HttpServletResponse response, Object handler,
 			ModelAndView modelAndView) throws Exception {
 		// TODO Auto-generated method stub
-		//HandlerInterceptor.super.postHandle(request, response, handler, modelAndView);
-		System.out.println("post开始拦截");
+		HandlerInterceptor.super.postHandle(request, response, handler, modelAndView);
 	}
 	
 	@Override
 	public void afterCompletion(HttpServletRequest request, HttpServletResponse response, Object handler, Exception ex)
 			throws Exception {
 		// TODO Auto-generated method stub
-		//HandlerInterceptor.super.afterCompletion(request, response, handler, ex);
-		System.out.println("拦截后");
+		HandlerInterceptor.super.afterCompletion(request, response, handler, ex);
 	}
 }

@@ -1,10 +1,14 @@
 package com.market.vo;
 
 public class ResponseEntity {
-	private int code;
+	private String code;
 	private boolean success;
 	private Object data;
 	private String msg;
+	
+	public ResponseEntity() {
+		// TODO Auto-generated constructor stub
+	}
 	
 	public ResponseEntity(Object data, boolean flag) {
 		this.data = data;
@@ -16,11 +20,11 @@ public class ResponseEntity {
 		this.success = false;
 	}
 
-	public int getCode() {
+	public String getCode() {
 		return code;
 	}
 
-	public void setCode(int code) {
+	public void setCode(String code) {
 		this.code = code;
 	}
 

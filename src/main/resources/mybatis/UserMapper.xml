@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+
+<mapper namespace= "com.market.mapper.UserMapper" >
+    <resultMap id ="StudentMap" type="com.market.vo.User">
+        <result column="id" property="id"/>
+        <result column="name" property="name"/>
+        <result column="pwd" property="pwd"/>
+        <result column="type" property="type"/>
+        <result column="register_time" property="register_time"/>
+        <result column="last_login_time" property="last_login_time"/>
+    </resultMap>
+
+    <select id="getUserByName" resultMap="StudentMap">
+        select
+        	  id,
+        	  name,
+        	  pwd,
+        	  type,
+        	  register_time,
+        	  last_login_time
+         from sm_user
+        where unuse = 0
+          and name=#{name};
+    </select>
+</mapper>

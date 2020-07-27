@@ -1,0 +1,14 @@
+create table sm_user(
+	id int(11) not null auto_increment,
+	`name` varchar(50) not null comment '用户名',
+	pwd varchar(6) not null comment '密码',
+	type bit(1) not null default 0 comment '账户类型',
+	unuse bit(1) not null default 0 comment '是否激活',
+	register_time timestamp default current_timestamp comment '注册时间',
+	last_login_time timestamp default current_timestamp comment '最后登录时间',
+	primary key(id)
+) engine=innodb auto_increment=1 default charset=utf8;
+
+select * from sm_user;
+
+insert into sm_user(`name`,pwd,type) values('liutingcai','123',1);
